@@ -1,5 +1,6 @@
 import { Logger } from 'winston';
 import {CreateRepoParams, UpdateRepoParams} from "./router";
+import { Config } from '@backstage/config'
 
 export interface ResponseBody {
   namespace: string;
@@ -26,21 +27,6 @@ interface UpdateRequestBody {
   description: string;
 }
 
-const token = 'ZIf30NbjNDk5ctboBEmQjLwBipY1F0J7eTmTzwiG';
-
-const getUrl = (url: string | undefined): string => {
-  if (!url) {
-    return 'https://quay.io';
-  }
-  try {
-    // eslint-disable-next-line no-new
-    new URL(url);
-  } catch (error) {
-    throw new Error('"baseUrl" is invalid');
-  }
-  return url;
-};
-
 const isValueValid = (
   value: string | undefined,
   valueName: string,
@@ -55,12 +41,13 @@ const isValueValid = (
   );
 };
 
-export async function createQuayRepository(createRepoParams: CreateRepoParams, logger: Logger) {
+export async function createQuayRepository(config: Config, createRepoParams: CreateRepoParams, logger: Logger) {
+  const token = config.getOptionalString('quay-backend-plugin.token');
+  const baseUrl = config.getOptionalString('quay-backend-plugin.url');
   const name = createRepoParams.repository;
   const visibility = createRepoParams.visibility;
   const namespace = createRepoParams.namespace;
   const description = createRepoParams.description;
-  const baseUrl = getUrl('https://quay.io');
   isValueValid(visibility, 'visibility', ['public', 'private']);
 
   const params: CreateRequestBody = {
@@ -101,9 +88,10 @@ export async function createQuayRepository(createRepoParams: CreateRepoParams, l
   return res;
 }
 
-export async function updateQuayRepository(namespace: string, repository: string, updateRepoParams: UpdateRepoParams, logger: Logger) {
+export async function updateQuayRepository(config: Config, namespace: string, repository: string, updateRepoParams: UpdateRepoParams, logger: Logger) {
   const description = updateRepoParams.description;
-  const baseUrl = getUrl('https://quay.io');
+  const token = config.getOptionalString('quay-backend-plugin.token');
+  const baseUrl = config.getOptionalString('quay-backend-plugin.url');
 
   const params: UpdateRequestBody = {
     description,
@@ -140,8 +128,9 @@ export async function updateQuayRepository(namespace: string, repository: string
   return res;
 }
 
-export async function deleteQuayRepository(namespace: string, repository: string, logger: Logger) {
-  const baseUrl = getUrl('https://quay.io');
+export async function deleteQuayRepository(config: Config, namespace: string, repository: string, logger: Logger) {
+  const token = config.getOptionalString('quay-backend-plugin.token');
+  const baseUrl = config.getOptionalString('quay-backend-plugin.url');
 
   const uri = encodeURI(`${baseUrl}/api/v1/repository/${namespace}/${repository}`);
 

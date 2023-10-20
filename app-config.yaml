@@ -339,3 +339,8 @@ enabled:
   permission: ${PERMISSION_ENABLED}
   metrics: ${METRICS_ENABLED}
   aap: ${AAP_ENABLED}
+  quay-backend-plugin: true
+
+quay-backend-plugin:
+  url: https://quay.io
+  token: ZIf30NbjNDk5ctboBEmQjLwBipY1F0J7eTmTzwiG

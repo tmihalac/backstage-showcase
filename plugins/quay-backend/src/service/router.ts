@@ -3,9 +3,11 @@ import express from 'express';
 import Router from 'express-promise-router';
 import { Logger } from 'winston';
 import { createQuayRepository, updateQuayRepository, deleteQuayRepository} from './createQuayRepo';
+import { Config } from '@backstage/config'
 
 export interface RouterOptions {
   logger: Logger;
+  config: Config;
 }
 
 export interface CreateRepoParams {
@@ -22,7 +24,7 @@ export interface UpdateRepoParams {
 export async function createRouter(
   options: RouterOptions,
 ): Promise<express.Router> {
-  const { logger } = options;
+  const { logger, config } = options;
 
   const router = Router();
   router.use(express.json());
@@ -37,7 +39,7 @@ export async function createRouter(
 
     const params: CreateRepoParams = request.body;
 
-    const responseBodyPromise = await createQuayRepository(params, logger);
+    const responseBodyPromise = await createQuayRepository(config, params, logger);
 
     logger.info(JSON.stringify(responseBodyPromise));
 
@@ -51,7 +53,7 @@ export async function createRouter(
     const namespace: string = request.params.namespace;
     const repository: string = request.params.repository;
 
-    const responseBodyPromise = await updateQuayRepository(namespace, repository, params, logger);
+    const responseBodyPromise = await updateQuayRepository(config, namespace, repository, params, logger);
 
     logger.info(JSON.stringify(responseBodyPromise));
 
@@ -64,7 +66,7 @@ export async function createRouter(
     const repository: string = request.params.repository;
     const namespace: string = request.params.namespace;
 
-    await deleteQuayRepository(namespace, repository, logger);
+    await deleteQuayRepository(config, namespace, repository, logger);
 
     res.status(200).send('')
   });
