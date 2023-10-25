@@ -41,9 +41,44 @@ const isValueValid = (
   );
 };
 
-export async function createQuayRepository(config: Config, createRepoParams: CreateRepoParams, logger: Logger) {
+function readConfiguration(config: Config) {
   const token = config.getOptionalString('quay-backend-plugin.token');
   const baseUrl = config.getOptionalString('quay-backend-plugin.url');
+  return {token, baseUrl};
+}
+
+export async function getByNameQuayRepository(config: Config, namespace: string, repository: string, logger: Logger) {
+  const {token, baseUrl} = readConfiguration(config);
+  const uri = encodeURI(`${baseUrl}/api/v1/repository/${namespace}/${repository}`);
+
+  logger.info('uri ' + uri)
+  const response = await fetch(uri, {
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    const errorBody = (await response.json()) as ResponseErrorBody;
+    const errorStatus = errorBody.status || response.status;
+    // Some error responses don't have the structure defined in ResponseErrorBody
+    const errorMsg = errorBody.detail || (errorBody as any).error;
+    throw new Error(
+      `Failed to get Quay repository, ${errorStatus} -- ${errorMsg}`,
+    );
+  }
+
+  const res = (await response.json()) as ResponseBody;
+  logger.info('response ' + JSON.stringify(res))
+
+  return res;
+}
+
+export async function createQuayRepository(config: Config, createRepoParams: CreateRepoParams, logger: Logger) {
+  const {token, baseUrl} = readConfiguration(config);
   const name = createRepoParams.repository;
   const visibility = createRepoParams.visibility;
   const namespace = createRepoParams.namespace;
@@ -82,7 +117,7 @@ export async function createQuayRepository(config: Config, createRepoParams: Cre
     );
   }
 
-  var res = (await response.json()) as ResponseBody;
+  const res = (await response.json()) as ResponseBody;
   logger.info('response ' + JSON.stringify(res))
 
   return res;
@@ -90,8 +125,7 @@ export async function createQuayRepository(config: Config, createRepoParams: Cre
 
 export async function updateQuayRepository(config: Config, namespace: string, repository: string, updateRepoParams: UpdateRepoParams, logger: Logger) {
   const description = updateRepoParams.description;
-  const token = config.getOptionalString('quay-backend-plugin.token');
-  const baseUrl = config.getOptionalString('quay-backend-plugin.url');
+  const {token, baseUrl} = readConfiguration(config);
 
   const params: UpdateRequestBody = {
     description,
@@ -128,9 +162,8 @@ export async function updateQuayRepository(config: Config, namespace: string, re
   return res;
 }
 
-export async function deleteQuayRepository(config: Config, namespace: string, repository: string, logger: Logger) {
-  const token = config.getOptionalString('quay-backend-plugin.token');
-  const baseUrl = config.getOptionalString('quay-backend-plugin.url');
+  export async function deleteQuayRepository(config: Config, namespace: string, repository: string, logger: Logger) {
+  const {token, baseUrl} = readConfiguration(config);
 
   const uri = encodeURI(`${baseUrl}/api/v1/repository/${namespace}/${repository}`);
 
