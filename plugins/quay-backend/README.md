@@ -20,7 +20,7 @@ The plugin exposes the following operations:
 
 ### Get Quay Repository By Name
 
-The url for the command is: http://localhost:7008/quay/get/${namespace}/${repoName}
+The url for the command is: http://localhost:7008/quay/get/${namespace}/${repository}
 
 ```shell
 curl -H "Content-Type: application/json" http://localhost:7008/quay/get/dum_tmp_1/quay-1111
@@ -46,7 +46,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"namespace": "dum_tmp_1","
 
 ### Update Quay Repository
 
-The url for the command is: http://localhost:7008/quay/update/${namespace}/${repoName}
+The url for the command is: http://localhost:7008/quay/update/${namespace}/${repository}
 
 The payload of the request is:
 
@@ -58,7 +58,7 @@ curl -X PUT -H "Content-Type: application/json" -d '{"description": "updated tes
 
 ### Delete Quay Repository
 
-The url for the command is: http://localhost:7008/quay/delete/${namespace}/${repoName}
+The url for the command is: http://localhost:7008/quay/delete/${namespace}/${repository}
 
 ```shell
 curl -X DELETE -H "Content-Type: application/json" http://localhost:7008/quay/delete/dum_tmp_1/quay-1111
